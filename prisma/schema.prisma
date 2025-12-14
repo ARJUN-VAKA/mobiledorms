@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  name      String?
+  password  String
+  role      String   @default("user") // user, admin
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Booking {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  email            String
+  phone            String
+  eventName        String
+  eventDate        DateTime
+  location         String
+  numberOfCapsules Int
+  duration         Int // days
+  message          String?
+  status           String   @default("pending") // pending, confirmed, cancelled
+  capsuleId        String?  @db.ObjectId
+  capsule          Capsule? @relation(fields: [capsuleId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([eventDate])
+  @@map("bookings")
+}
+
+model PartnerInquiry {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  organizationName String
+  contactName      String
+  email            String
+  phone            String
+  partnerType      String // event, corporate, government, ngo
+  message          String?
+  status           String   @default("pending") // pending, contacted, approved, rejected
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([partnerType])
+  @@map("partner_inquiries")
+}
+
+model Capsule {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  location      String
+  capacity      Int
+  status        String    @default("available") // available, booked, maintenance
+  pricePerNight Float
+  features      String? // JSON string of features
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
+
+  @@index([location])
+  @@index([status])
+  @@map("capsules")
+}
